@@ -21,3 +21,26 @@ fn main() {
         }
     }
 }
+
+fn handle_packet(packet: &[u8]) {
+    let ethernet = EthernetPacket::new(packet).unwrap();
+    match ethernet.ethernet_type {
+        EthernetType::Ipv4 => {
+            ipv4_handler(&ethernet);
+        }
+        EthernetType::Ipv6 => {
+            ipv6_handler(&ethernet);
+        }
+        _ => {
+            println!("Unknown packet: {:?}", ethernet);
+        }
+    }
+}
+
+fn ipv4_handler(ethernet: &EthernetPacket) {
+    println!("IPv4 packet: {:?}", ethernet);
+}
+
+fn ipv6_handler(ethernet: &EthernetPacket) {
+    println!("IPv6 packet: {:?}", ethernet);
+}
