@@ -1,5 +1,5 @@
-use std::net::Ipv4Addr;
 use colored::Colorize;
+use std::net::Ipv4Addr;
 
 #[derive(Debug, PartialEq)]
 pub struct Packet {
@@ -9,21 +9,21 @@ pub struct Packet {
     pub src_port: u16,
     pub dst_ip: Ipv4Addr,
     pub dst_port: u16,
-    pub payload: Vec<u8>
+    pub payload: Vec<u8>,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum PacketDirection {
     Send,
     Receive,
-    Both
+    Both,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Protocol {
     TCP,
     UDP,
-    Unknown
+    Unknown,
 }
 
 pub struct IpHeader {
@@ -32,7 +32,15 @@ pub struct IpHeader {
 }
 
 impl Packet {
-    pub fn new(direction: PacketDirection, protocol: Protocol, src_ip: Ipv4Addr, src_port: u16, dst_ip: Ipv4Addr, dst_port: u16, payload: Vec<u8>) -> Packet {
+    pub fn new(
+        direction: PacketDirection,
+        protocol: Protocol,
+        src_ip: Ipv4Addr,
+        src_port: u16,
+        dst_ip: Ipv4Addr,
+        dst_port: u16,
+        payload: Vec<u8>,
+    ) -> Packet {
         Packet {
             direction,
             protocol,
@@ -40,7 +48,7 @@ impl Packet {
             src_port,
             dst_ip,
             dst_port,
-            payload
+            payload,
         }
     }
 
@@ -52,11 +60,21 @@ impl Packet {
         Packet {
             direction: Self::parse_direction(&packet),
             protocol: Self::parse_protocol(&packet),
-            src_ip: Ipv4Addr::new(ip_header.src_ip[0], ip_header.src_ip[1], ip_header.src_ip[2], ip_header.src_ip[3]),
+            src_ip: Ipv4Addr::new(
+                ip_header.src_ip[0],
+                ip_header.src_ip[1],
+                ip_header.src_ip[2],
+                ip_header.src_ip[3],
+            ),
             src_port: u16::from_be_bytes([tcp_header[0], tcp_header[1]]),
-            dst_ip: Ipv4Addr::new(ip_header.dst_ip[0], ip_header.dst_ip[1], ip_header.dst_ip[2], ip_header.dst_ip[3]),
+            dst_ip: Ipv4Addr::new(
+                ip_header.dst_ip[0],
+                ip_header.dst_ip[1],
+                ip_header.dst_ip[2],
+                ip_header.dst_ip[3],
+            ),
             dst_port: u16::from_be_bytes([tcp_header[2], tcp_header[3]]),
-            payload: Self::parse_payload(&packet)
+            payload: Self::parse_payload(&packet),
         }
     }
 
@@ -101,7 +119,7 @@ impl Packet {
     fn parse_ip_header(packet: &[u8]) -> IpHeader {
         IpHeader {
             src_ip: [packet[14], packet[15], packet[16], packet[17]],
-            dst_ip: [packet[18], packet[19], packet[20], packet[21]]
+            dst_ip: [packet[18], packet[19], packet[20], packet[21]],
         }
     }
 
@@ -115,33 +133,45 @@ impl std::fmt::Display for Packet {
         let direction = match self.direction {
             PacketDirection::Send => "Send",
             PacketDirection::Receive => "Receive",
-            PacketDirection::Both => "Both"
+            PacketDirection::Both => "Both",
         };
 
         let protocol = match self.protocol {
             Protocol::TCP => "TCP",
             Protocol::UDP => "UDP",
-            Protocol::Unknown => "Unknown"
+            Protocol::Unknown => "Unknown",
         };
 
         let direction = match self.direction {
             PacketDirection::Send => format!("{}", direction.green()),
             PacketDirection::Receive => format!("{}", direction.red()),
-            PacketDirection::Both => format!("{}", direction.yellow())
+            PacketDirection::Both => format!("{}", direction.yellow()),
         };
 
         let protocol = match self.protocol {
             Protocol::TCP => format!("{}", protocol.green()),
             Protocol::UDP => format!("{}", protocol.red()),
-            Protocol::Unknown => format!("{}", protocol.yellow())
+            Protocol::Unknown => format!("{}", protocol.yellow()),
         };
 
-        //write!(f, "Packet: {} {} {}:{} -> {}:{}/10 ({} bytes)", direction, protocol, self.src_ip, self.src_port, self.dst_ip, self.dst_port, self.payload.len())
-
-        //table headers
-        write!(f, "{:<20} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}", "Direction", "Protocol", "Source IP", "Source Port", "Destination IP", "Destination Port", "Payload Length");
+        let direction = match self.direction {
+            PacketDirection::Send => format!("{}", "-- SEND ->".green()),
+            PacketDirection::Receive => format!("{}", "<- RECV --".red()),
+            PacketDirection::Both => format!("{}", "<< BOTH >>".yellow()),
+        };
 
         //pretty output with colors and in a table
-        write!(f, "{:<20} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}", direction, protocol, self.src_ip, self.src_port, self.dst_ip, self.dst_port, self.payload.len())
+        write!(
+            f,
+            "|  {:15}:{:5}  |  {:10}|  {:15}:{:5}  | Direction: {:<21} |  Protocol: {:18} |    {:5} bytes ",
+            self.src_ip.to_string().green(),
+            self.src_port.to_string().green(),
+            "------->".to_string(),
+            self.dst_ip.to_string().red(),
+            self.dst_port.to_string().red(),
+            direction,
+            protocol,
+            self.payload.len()
+        )
     }
 }
