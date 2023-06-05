@@ -1,5 +1,5 @@
+use crate::packet::{Packet, PacketDirection, Protocol};
 use colored::Colorize;
-use crate::packet::{PacketDirection, Protocol};
 
 impl std::fmt::Display for Packet {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
