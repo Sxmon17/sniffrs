@@ -1,3 +1,5 @@
+mod packet;
+
 use pnet::datalink; use pnet::datalink::Channel::Ethernet;
 
 fn main() {
