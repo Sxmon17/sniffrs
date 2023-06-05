@@ -1,4 +1,5 @@
 use std::net::Ipv4Addr;
+use colored::Colorize;
 
 #[derive(Debug, PartialEq)]
 pub struct Packet {
@@ -43,18 +44,11 @@ impl Packet {
         }
     }
 
-    //match and identify package from ethernet and serialize it
     pub fn from_ethernet(packet: &[u8]) -> Packet {
-        //parse the ethernet header
         let ethernet_header = Packet::parse_ethernet_header(packet);
-
-        //parse the ip header
         let ip_header = Packet::parse_ip_header(packet);
-
-        //parse the tcp header
         let tcp_header = Packet::parse_tcp_header(packet);
 
-        //create the packet
         Packet {
             direction: Self::parse_direction(&packet),
             protocol: Self::parse_protocol(&packet),
@@ -116,4 +110,38 @@ impl Packet {
     }
 }
 
+impl std::fmt::Display for Packet {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let direction = match self.direction {
+            PacketDirection::Send => "Send",
+            PacketDirection::Receive => "Receive",
+            PacketDirection::Both => "Both"
+        };
 
+        let protocol = match self.protocol {
+            Protocol::TCP => "TCP",
+            Protocol::UDP => "UDP",
+            Protocol::Unknown => "Unknown"
+        };
+
+        let direction = match self.direction {
+            PacketDirection::Send => format!("{}", direction.green()),
+            PacketDirection::Receive => format!("{}", direction.red()),
+            PacketDirection::Both => format!("{}", direction.yellow())
+        };
+
+        let protocol = match self.protocol {
+            Protocol::TCP => format!("{}", protocol.green()),
+            Protocol::UDP => format!("{}", protocol.red()),
+            Protocol::Unknown => format!("{}", protocol.yellow())
+        };
+
+        //write!(f, "Packet: {} {} {}:{} -> {}:{}/10 ({} bytes)", direction, protocol, self.src_ip, self.src_port, self.dst_ip, self.dst_port, self.payload.len())
+
+        //table headers
+        write!(f, "{:<20} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}", "Direction", "Protocol", "Source IP", "Source Port", "Destination IP", "Destination Port", "Payload Length");
+
+        //pretty output with colors and in a table
+        write!(f, "{:<20} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}", direction, protocol, self.src_ip, self.src_port, self.dst_ip, self.dst_port, self.payload.len())
+    }
+}
