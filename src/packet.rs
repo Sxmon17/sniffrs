@@ -23,6 +23,9 @@ pub enum PacketDirection {
 pub enum Protocol {
     TCP,
     UDP,
+    ARP,
+    ICMP,
+    DNS,
     Unknown,
 }
 
@@ -101,12 +104,13 @@ impl Packet {
     }
 
     fn parse_protocol(packet: &[u8]) -> Protocol {
-        if packet[0] == 0x00 {
-            Protocol::TCP
-        } else if packet[0] == 0x01 {
-            Protocol::UDP
-        } else {
-            Protocol::Unknown
+        match packet[23] {
+            0x06 => Protocol::TCP,
+            0x11 => Protocol::UDP,
+            0x08 => Protocol::ARP,
+            0x01 => Protocol::ICMP,
+            0x53 => Protocol::DNS,
+            _ => Protocol::Unknown,
         }
     }
 
@@ -139,6 +143,9 @@ impl std::fmt::Display for Packet {
         let protocol = match self.protocol {
             Protocol::TCP => "TCP",
             Protocol::UDP => "UDP",
+            Protocol::ARP => "ARP",
+            Protocol::ICMP => "ICMP",
+            Protocol::DNS => "DNS",
             Protocol::Unknown => "Unknown",
         };
 
@@ -151,6 +158,9 @@ impl std::fmt::Display for Packet {
         let protocol = match self.protocol {
             Protocol::TCP => format!("{}", protocol.green()),
             Protocol::UDP => format!("{}", protocol.red()),
+            Protocol::ARP => format!("{}", protocol.blue()),
+            Protocol::ICMP => format!("{}", protocol.magenta()),
+            Protocol::DNS => format!("{}", protocol.cyan()),
             Protocol::Unknown => format!("{}", protocol.yellow()),
         };
 
