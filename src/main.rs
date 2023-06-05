@@ -1,4 +1,5 @@
 mod packet;
+mod outstream;
 
 use crate::packet::Packet;
 use pnet::datalink;
